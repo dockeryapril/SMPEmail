@@ -1,0 +1,1095 @@
+<%
+{ ****************************************** Begin Configuration Options **************************************** }
+	
+	{ WARNING: This template contains a workaround for issue 273839. The workaround is labeled for removal when the issue is resolved }
+	
+	{ WARNING: Guest names with visual IDs will not work for ticket upgrades due to the problems described in 274911. This is a known issue. }
+	
+	{ Begin: General Configurations }
+	{Set the email subject line by whether or not there is an ExternalID.}     
+
+		if Order.GetOrderField('ExternalID') <> '' then MessageSubject = 'Stone Mountain Park Web Store Order #' + Order.GetField('ExternalID')  
+		if Order.GetOrderField('ExternalID') = '' then  MessageSubject = 'Stone Mountain Park Order #'  + Order.GetOrderField('OrderID')    
+
+	{End  email subject line.}  
+	CurrencySymbol = "$"
+	BodyTitle = "" {Sets the title of the email body.}
+	
+	ChargeFOPID = 81 { Specify the Charge Account FOP used for Order Entry and the Web Store. }	
+	WebStoreURL = "https://tickets.stonemountainpark.com/webstore/" { Subdomain and WebStore folder for the webstore. Used for AppleWallet and for visualID generation, if enabled. }
+	
+	{ Search for TO_EDIT and adjust footer to your standards. }
+	{ End: General Configuratoins }
+	
+	{ Begin: Appearance options }
+	{ Select "T" to show the specified element in the confirmation e-mail or "F" to hide it. }
+	
+		ShowTicketVID = "F"				{ Show visual IDs for tickets purchased in the footer of the email. }
+		
+		ShowBenefitPackages = "T"			{ Show benefit package details with the pass. If F, benefit packages will not be printed at all. }
+		
+		ShowDonationInOrderLines = "T"		{ Donation shown as an order line in the e-mail body. }
+		ShowDonationAppreciation = "T" 		{ Footer section thanking customer for their donation. }
+		
+		ShowDiscountBragging = "F" 		{ Footer section informing the customer of the amount saved using the discount. }
+		ShowItemDiscounts = "F" 		{ Discounts name and amount listed under the item description. }
+	
+		ShowItemFee = "T" 			{ Show per item fee in the order lines. }
+		ShowOrderFeeInTotals = "F" 		{ Show order fee in the totals area. Do not use with ShowConvenienceFeeTotal to avoid inaccurate calculations. }
+		ShowOrderFeeInOrderLines = "T" 	 	{ Show order fee as an order line in the e-mail body. }
+		ShowConvenienceFeeTotal = "T" 		{ Show sum of all convenience fees in the totals area. }
+		
+		ShowNewsLetterOptInMessage = "F"	{ Footer section acknowledging customer selection of the newsletter prompt. }
+		NewsletterConfirmation = "Thank you for your interest in the Galactic Explorer's Newsletter. Keep an eye on your inbox for our next monthly installment!"		{ Text to display in the footer area when someone opts to receive a newsletter, if the previous option is T.}
+		
+		ShowMarketingMessages = "T"  		{ Show marketing messages in footer. }
+		
+		ShowShippingWithoutTax = "F" 		{ For tax inclusive facilities, show the shipping fee before tax is applied. }
+		
+		ShowOrderLink = "T"  			{ Show the link for ticket pickup, if one exists. Typically used with Print on Web. }
+		
+		ShowAppleWalletLink = "T"		{ Show the link for Apple Wallet ticket retrieval (must be enabled) }
+		AppleWalletButtonLanguage = "EN" 	{ Language of the Apple Wallet button to display in the template. See documentation for a list of supported languages or the Apple Wallet template editor. }
+		OverrideDefaultTheme = "F"			{ Set to T to use a theme other than the default category group for theming the Apple Wallet page. }
+		CategoryGroup = "CG=11&C=111" 		{ Category group and category to override the default theme. }
+                AppleWalletImage = WebStoreURL + "images/AppleWallet/appleWallet-" + AppleWalletButtonLanguage + ".png"
+	{ End: Appearance options }
+	
+	{ Begin: Font and color options }
+	{ These options will be used in style tags to set font and color options. Please do not include text alignment properties or a trailing semicolon. }
+	{ W3Schools is an excellent reference site for learning more about how to set these styles. }
+		
+		BodyStyle = "background-color: #FFFFFF; text-decoration: none"		{ Enter the basic body style for the entire email. Do not include font styling. }
+		
+		BodyFont = "font-family: Verdana, sans-serif; color: #000000; font-size: 100%"			{ Font to be used for the majority of the email text. }
+		TitleFont = "font-family: Verdana, sans-serif; color: #385f9a; font-size: 150%; font-weight: bold"		{ Font to be used for the body title. }
+		HeaderFont = "font-family: Verdana, sans-serif; color: #151E61; font-size: 100%; font-weight: bold"		{ Font to be used for the column headers. }
+		EmphasisFont = "font-family: Verdana, sans-serif; color: #002db3; font-size: 100%; font-weight: bold"		{ Font to be used for emphasized text such as the order number and links. }
+		EmphasisFont2 = "font-family: Verdana, sans-serif; color: #000000; font-size: 85%; font-style: italic"		{ Alternate font for emphasized text, such as event and roster information. }
+		ReturnFont = "font-family: Verdana, sans-serif; color: #000000; font-size: 100%; font-style:italic"		{ Alternate font for returns. }
+		
+		DividerColor = "#385f9a"		{ Color used for horizontal dividing lines. }
+		
+	{ End: Font and color options }
+	
+	{ Begin: Diagnostic Tools }
+	{ This section contains options used to show information in your email that may be useful when troubleshooting }
+	
+		OrderLineDiagnostic = "F" {Set to T to show a raw listing of order line information at the bottom of the email}
+	{ End: Diagnostic Tools }
+
+{ ****************************************** End Configuration Options ******************************** } %>
+ <span style="color: #ffffff; display: none !important; font-size: 1px; line-height: 1px; margin: 0px; max-height: 0px; max-width: 0px; mso-hide: all;
+ opacity: 0; overflow: hidden; padding: 0px; visibility: hidden;">Thanks for your order. Here is your confirmation info.</span>
+<body style="<% write(BodyStyle) %>" leftMargin="0" topMargin="0" marginheight="0" marginwidth="0">
+    <table style="<% write(BodyFont) %>" cellSpacing="0" cellPadding="0" width="760" align="center" border="0">
+      <tr>
+       <td>
+        <table cellSpacing="0" cellPadding="0" width="100%" align="center" border="0" valign="top"> 
+			<% { Begin: Title Area and Merchant Image }
+			if (MerchantLogo <> "") and (MerchantLogo <> ParkLogo) then begin {start 1} %>
+				<tr>
+					<td width="76%" align="right">
+						<p style="text-align: center; <% write(TitleFont) %>">
+							<% write(ParkHeaderText) %><br>
+							<% write(BodyTitle) {Print the body title from the configuration options above.} %>
+						</p>
+					</td>
+					<td>
+						<img src="<% write(MerchantLogo) %>" alt="<% write(MerchantLogoAlternateText) %>">
+					</td>
+				</tr>
+			<% 	end else begin {else 1} %>
+				<tr>
+					<td align="center" colspan="2">
+						<p style="text-align: center; <% write(TitleFont) %>">
+							<% write(ParkHeaderText) %><br>
+							<% write(BodyTitle) %>
+						</p>
+					</td>
+				</tr>
+			<% end {end 1}
+			{ End: Title Area and Merchant Image } %>
+        </table>    
+		<hr size="1" noshade color="<% write(DividerColor) %>">
+		<p style="<% write(EmphasisFont) %>">		
+            <p style="text-align: center;"><% write(Order.GetField("Contact.FirstName")) %> <% write(Order.GetField("Contact.LastName")) %>, thank you for your purchase</p>
+            <br/>
+            <br/>
+            <p style="text-align: center;">Your confirmation number is <% if Order.Getfield("ExternalID" )='' then write(Order.GetField("OrderID" )) else write(Order.GetField("ExternalID" ))%>
+		</p>
+<br/>
+
+<p style="text-align: center;">Please check <a href="https://www.stonemountainpark.com/Calendar">calendar</a> for hours of operation prior to your visit.</p>
+<br/>
+
+<% { Begin: Marketing Messages }
+				if ShowMarketingMessages = "T" then begin {start 67}
+					for i = 0 to MarketingMessages.MarketingMessageListCount - 1 do begin {start 68} %>
+						
+								<% write(MarketingMessages.GetMarketingMessageHTMLText(i)) %>
+							
+					<% end {end 68}
+				end {end 67}
+			{ End: Marketing Messages }%>
+
+	
+<br/>
+		<%
+{ Begin: Mobile Order Retrieval Link ---EDIT THE WebStoreURL VARIABLE ABOVE IN CONFIG OPTIONS BASED ON YOUR ACTUAL URLS FOR STAGING AND PRODUCTION }
+if ShowOrderLink='T' and Order.GetOrderField('ExternalID') <> '' and Order.GetField('OrderHash') <> '' then begin
+{start 2}
+%> 
+
+<p style="text-align: center;">
+<br><a href="<% write(WebStoreURL+"Order?x=" + Order.GetField("OrderHash")) %>">View your tickets online</a>
+</p>
+<% end
+{end 2}
+{ End: Mobile Order Retrieval Link }
+%>
+<% {Begin Apple Wallet Link}
+			if ShowAppleWalletLink = "T"        and Order.GetField('OrderHash') <> '' then begin {start 72} 
+				AppleWalletURL = WebStoreURL + "applewallet?x=" + Order.GetField("OrderHash")
+				if OverrideDefaultTheme = "T" then AppleWalletURL = AppleWalletURL + "&" + CategoryGroup
+				AppleWalletImage = WebStoreURL + "images/AppleWallet/appleWallet-" + AppleWalletButtonLanguage + ".png" %>
+				<p style="text-align: center;"><a href="<% write(AppleWalletURL) %>"><img src="<% write(AppleWalletImage)%>" alt="Download Apple Wallet tickets"></a>
+			<% end {end 72}
+		{ End Apple Wallet Link }%>
+			
+<%		{ Begin: Delivery Method Instructions }
+			if DeliveryInstructions <> "" then begin {start 3} %>
+				<p>
+					
+					<% write(DeliveryInstructions) {Write the delivery instructions from the delivery method.} %>
+				</p>
+			<%  {end 3}
+		{ End: Delivery Method Instructions } %>			
+		
+		<hr size="1" noshade color="<% write(DividerColor) %>">
+		<% { Begin: Formatting for Billing, Shipping, and Loyalty }
+			LoyaltyFlag = 0			{Tracking variable for whether or not the order has loyalty associated.}
+			ShippingFlag = 0		{Tracking variable for whether or not the order has a shipping address different from the billing address.}
+			if Order.GetOrderField("HasLoyalty") then begin {start 4}
+				LoyaltyFlag = 1
+			end {end 4}
+			if Order.GetField("ViewOrderWebURL") = "" then begin {start 5}
+				if (Order.GetField("ContactID") <> Order.GetField("ShipToContactID")) then begin {start 5.1}
+					ShippingFlag = 1
+				end {end 5.1 } 
+			end {end 5}
+			numcolumns = (1 + ShippingFlag + LoyaltyFlag)
+			width = (100 / numcolumns)
+		{ End: Formatting for Billing, Shipping, and Loyalty } %>
+        
+		<table style="<% write(HeaderFont) %>" cellSpacing="0" cellPadding="0" width="760" align="center" border="0">
+        	<% { Begin: Billing, Shipping, & Loyalty Headers } %>
+				<tr>
+					<td width="<% write(width) %>%">
+						Billing Information
+					</td>
+					<% if ShippingFlag = 1 then begin {start 6}%>
+						<td width="<% write(width) %>%">
+							Shipping Information
+						</td> 
+					<% end {end 6}
+					if LoyaltyFlag = 1 then begin {start 7} %>
+						<td width="<% write(width) %>%">
+						<% write(Loyalty.GetField("ProgramName")) %> Information</td>
+					<% end {end 7} %>
+					</td>
+				</tr>
+			<% { End: Billing, Shipping, & Loyalty Headers } %>
+			
+            </table>
+			<table style="<% write(BodyFont) %>" cellSpacing="0" cellPadding="0" width="760" align="center" border="0">
+			<tr>
+				<% { Begin: Billing Information } %>
+					<td width="<% write(width) %>%">
+						<% write(Order.GetField("Contact.FirstName")) %> <% write(Order.GetField("Contact.LastName")) %><br/>
+						<% write(Order.GetField("Contact.Address.Street1")) %><br/>
+						<% if (Order.GetField("Contact.Address.Street2") <> "") then begin {start 8}
+							write(Order.GetField("Contact.Address.Street2")) %><br/><% end {end 8} %>
+						<% if (Order.GetField("Contact.Address.Street3") <> "") then begin {start 9}
+							write(Order.GetField("Contact.Address.Street3")) %><br/><% end {end 9} %>
+						<% write(Order.GetField("Contact.Address.City")) %>, <% write(Order.GetField("Contact.Address.State")) %>  <% write(Order.GetField("Contact.Address.Postal")) %><br/>
+						<% write(Order.GetField("Contact.Phone")) %><br/>
+						<% write(Order.GetField("Contact.Email")) %>
+					</td>
+				<% { End: Billing Information }
+				
+				{ Begin: Shipping Information }
+					if ShippingFlag = 1 then begin {start 10} %>
+						<td valign="top" width="<% write(width) %>%">
+							<% write(Order.GetField("ShipToContact.FirstName")) %> <% write(Order.GetField("ShipToContact.LastName")) %><br/>
+							<% write(Order.GetField("ShipToContact.Address.Street1")) %><br/>
+							<% if (Order.GetField("ShipToContact.Address.Street2") <> "") then begin {start 11}
+								write(Order.GetField("ShipToContact.Address.Street2")) %><br/> <% end {end 11} %>
+							<% if (Order.GetField("ShipToContact.Address.Street3") <> "") then begin {start 12}
+								write(Order.GetField("ShipToContact.Address.Street3")) %><br/> <% end {end 12} %>
+							<% write(Order.GetField("ShipToContact.Address.City")) %>, <% write(Order.GetField("ShipToContact.Address.State")) %>  <% write(Order.GetField("ShipToContact.Address.Postal")) %><br/>
+							<% write(Order.GetField("ShipToContact.Phone")) %><br/>
+							<% write(Order.GetField("ShipToContact.Email")) %>
+						</td>
+					<% end {end 10}
+				{ End: Shipping Information } 				
+				
+				{ Begin: Loyalty Information } 
+					if LoyaltyFlag = 1 then begin {start 13} %>				
+						<td valign="top" width="<% write(width) %>%">
+							<% write(Loyalty.GetField("ContactFullName")) %><br/>
+							Account: <% write(Loyalty.GetField("AccountNo")) %><br/>
+							<% if Order.GetOrderField("PaidWithLoyalty") then begin {start 14} %>
+								Points Redeemed: <% write(Order.GetOrderField("RedeemedLoyaltyPoints")) %><br/>
+							<% end else begin {else 14} %>
+								Points Earned: <% write(Order.GetOrderField("EarnedLoyaltyPoints") + Order.GetField("EarnedLoyaltyBonusPoints")) %><br/>
+							<% end {end 14} %>
+							New Point Balance: <% write(Loyalty.GetField("AccountBalance")) %><br/>
+						</td>
+					<% end {end 13}
+				{ End: Loyalty Information } %>
+            </tr>
+        </table>
+        <table style="<% write(BodyFont) %>" width="100%" border="0" cellspacing="2" cellpadding="2">
+            <tr>
+                <td colspan="4">
+                    <hr size="1" noshade color="<% write(DividerColor) %>">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" style="<% write(EmphasisFont) %>">
+					Order Date: <% write(DateToStr(Order.GetField("OpenDate"))) %>
+					<br>
+					<br>
+                </td>
+            </tr>
+			<tr>
+			<table width="100%" style="<% write(BodyFont) %>">
+			<tr>
+			<% { Begin: Order Line Headers } %>
+				<tr height="36" align="center" style="<% write(HeaderFont) %>">
+					<td width="55%" >
+						Item
+					</td>
+					<td width="15%">
+						<% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 15} %> 
+							Price 
+						<% end else begin {else 15} %>
+							&nbsp;
+						<% end {end 15} %>
+					</td>
+					<td width="10%">
+							Qty
+					</td>
+					<td width="20%" align="right">
+						<% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 16} %>
+							&nbsp;&nbsp;&nbsp;&nbsp; Total <% {repeated spaces code is there to work around a bug in Outlook to give room for negatives } %>
+						<% end else begin {else 16} %>
+							&nbsp;
+						<% end {end 16} %>
+					</td>
+				</tr>
+			<% { End: Order Line Headers }
+			
+			TotalDonation = 0 	{ variable to track total amount donated }
+			DiscountName = ""	{ variable to track the name of the discount used (assumes only one discount used) }
+			NumDiscounts = 0	{ variable to track the number of named discounts on the order }
+			totaldiscount = 0.0 { variable to track the total amount of money saved via discounts }
+			HasIssuedTickets = "F" { variable to detect if the order has issued tickets - used for Apple Wallet and visual ID display }
+			HasGuests = "F"		{ variable to track if any ticket(s) in the order have a guest name or roster - used for visual ID display }
+			UpgradedAmount = 0.0 { Workaround 273839: This variable is tracking the amount of upgrade in the order, remove when issue is resolved }
+			
+			{ Begin: List Order Lines }
+                for i = 0 to Order.OrderLineCount - 1 do begin {start 17}
+					OrderLineID = Order.GetOrderLineField(i,"UniqueID")
+					if Order.GetOrderLineDiscountField(OrderLineID,0,"Description") <> "" then begin {start 18}
+						if Order.GetOrderLineField(i,"PackageDetailID") = 0 then begin {start 19}
+							if Order.GetOrderLineField(i,"DiscountAmount") > 0 then begin {start 20}
+								if Order.OrderLineIsDonation(i) = 0 then begin {start 21}
+									totaldiscount = totaldiscount + Order.GetOrderLineField(i,"DiscountAmount") 
+								end {end 21}
+							end {end 20}
+						end {end 19}
+						if Order.GetOrderLineDiscountField(OrderLineID,0,"Description") <> DiscountName then begin {start 22}
+							NumDiscounts = NumDiscounts + 1
+						end {end 22}
+						DiscountName = Order.GetOrderLineDiscountField(OrderLineID,0,"Description")
+					end {end 18}
+                { Begin: Write Tickets and Items }
+                    if ((Order.OrderLineIsTicketOrItem(i) and Order.OrderLines(i).GetField("PLU") <> ShippingPLU and Order.OrderLines(i).IsPass = "False") or Order.OrderLines(i).GetField("DetailType") = 16) then begin {start 23}
+                        if (Order.OrderLines(i).IsTicket and Order.OrderLines(i).OrderLineDetailsCount > 0) then begin {start 70}
+							HasIssuedTickets = "T"
+							end {end 70} 
+						if Order.OrderLines(i).GetField("DetailType") = 16 then begin {start 23} 
+							UpgradedAmount = UpgradedAmount + Order.GetOrderLineField(i,"Total") { Workaround 273839: This variable is tracking the amount of upgrade in the order, remove when issue is resolved }
+							end {end 23}
+						%>
+						<tr style="<% if Order.Orderlines(i).GetField("Quantity") < 1 then write(ReturnFont) else write(BodyFont) %>">
+                            <td width="55%" align="left">
+                                <% write(Order.OrderLines(i).GetField("Description")) %>
+                                <ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:.5em; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(EmphasisFont2) %>">
+									<% if Order.OrderLineIsEvent(i) then begin {start 24} %>
+										<li>
+											<% write(Order.OrderLines(i).Event.GetField("EventName")) %>
+										</li>
+										<li>
+											<% write(DateTimeToStr(Order.OrderLines(i).Event.GetField("StartDateTime"))) %>
+										</li>
+										<% { Begin: Roster Info }
+											for j = 0 to Order.OrderLines(i).Event.Rosters.Count - 1 do begin {start 25}
+												if Order.OrderLines(i).GetField("UniqueID") = Order.OrderLines(i).Event.Rosters(j).GetField("OrderLineID") then begin {start 26} %>
+													<li>Attendee: <% write(Order.OrderLines(i).Event.Rosters(j).Contact.FirstName + " " + Order.OrderLines(i).Event.Rosters(j).Contact.LastName) %></li>
+												<% HasGuests = "T"
+												end {end 26}
+											end {end 25}
+										{ End: Roster Info }
+									end {end 24}
+									for j=0 to Order.Orderlines(i).Guests.Count - 1 do begin {start 27} %>
+										<li>Guest Name: <% write(Order.OrderLines(i).Guests(j).GetField("Name")) %></li>
+									<% HasGuests = "T"
+									end {end 27}
+									if Order.GetOrderLineField(i,"ItemFee") <> "0.00" and ShowItemFee = "T" then begin {start 28} %>
+										<li>
+											Processing Fee (Tax Included): <% write(CurrencySymbol + Order.GetOrderLineField(i, "ItemFee")) %> 
+										</li>
+									<% end {end 28}
+									if Order.GetDiscountCount(OrderLineID) > 0 and ShowItemDiscounts = "T" then begin {start 29} %>
+										<% for k = 0 to Order.GetDiscountCount(OrderLineID) - 1 do begin {start 30} %>
+											<li>
+												Applied discount <% write(Order.GetOrderLineDiscountField(OrderLineID,k,"Description")) %>: <% write(CurrencySymbol + Order.GetOrderLineDiscountField(OrderLineID,k,"Amount")) %>
+											</li>
+										<% end {end 30}
+									end {end 29} %>
+								</ul>
+							</td>
+                            <td width="15%" align="center">
+								<% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 31}
+									write(CurrencySymbol)
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 32}
+										write(Order.GetOrderLineField(i,"AmountWithTax"))
+									end else begin {else 32}
+										write(Order.GetOrderLineField(i,"Amount")) 
+									end {end 32}
+								end else begin {else 31} %>
+									&nbsp;
+								<% end {end 31} %>
+                            </td>
+                            <td width="10%" align="center">
+                                <% write(Order.OrderLines(i).GetField("Quantity")) %>
+                            </td>
+                            <td width="20%" align="right">
+                                <% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 33}
+									if Order.GetOrderLineField(i,"Total") < 0 then write("-")
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 34}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"TotalWithTax"))))
+									end else begin {else 34}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"Total"))))
+									end {end 34}
+								end else begin {else 33} %>
+									&nbsp;
+								<% end {end 33} %>
+                            </td>
+                        </tr>
+                    <% end {end 23}
+                { End: Write Tickets and Items }
+				{ Begin: Write Passes }
+					if Order.OrderLineIsPass(i) then begin {start 23}
+                        IssuedBenefits = 0.0
+						HasGuests = "T"
+						if Order.OrderLines(i).OrderLineDetailsCount > 0 then begin {start 70}
+							HasIssuedTickets = "T"
+						end {end 70} %>
+						<tr style="<% if Order.Orderlines(i).GetField("Quantity") < 1 then write(ReturnFont) else write(BodyFont) %>">
+                            <td width="55%" align="left">
+                                <% write(Order.OrderLines(i).GetField("Description")) %>
+                                <ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:.5em; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(EmphasisFont2) %>">
+									<li>Passholder: <% write(Order.OrderLines(i).Pass.First + " " + Order.OrderLines(i).Pass.Last) %></li>
+										<% if Order.OrderLines(i).Pass.JointMemberCount > 1 then begin {First joint member is the primary - we only want to print joint members if there are two or more} { A } %>
+											<li>Additional Members:
+												<ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:.5em; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(BodyFont) %>">
+													<% for k = 1 to Order.OrderLines(i).Pass.JointMemberCount - 1 do begin {Starting at 1 so we do not reprint the primary member again} { B } %>
+														<li><% write(Order.OrderLines(i).Pass.JointMembers(k).Contact.FormattedName) %></li>
+													<% end { B } %>
+												</ul>
+											</li>
+										<% end { A }
+											for j = 0 to Order.OrderLineCount - 1 do begin { D }
+												if Order.OrderLineIsPackage(j) and Order.OrderLines(j).GetField("GroupID") = Order.OrderLines(i).GetField("UniqueID") then begin { E }
+													k = j 
+														if ShowBenefitPackages = "T" then begin { C }%>
+															<li>Issued Benefits:
+																<ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:.5em; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(BodyFont) %>">
+														<% end { C }
+														while (k <= Order.OrderLineCount - 1)  do begin { F }
+															if Order.OrderLines(k).GetField("GroupID") = Order.OrderLines(j).GetField("UniqueID") then begin { G } 
+																if ShowBenefitPackages = "T" then begin { I } %> 
+																	<li><% write(Order.OrderLines(k).GetField("Quantity")) %> <% write(Order.OrderLines(k).GetField("Description")) %></li>
+																<% end { I }
+																IssuedBenefits = IssuedBenefits + Order.OrderLines(k).GetField("Amount")
+															end { G }
+															k = k + 1
+														end { F }
+													end { E }
+												end { D } 
+											if ShowBenefitPackages = "T" then begin { H } %>
+											</ul>
+										</li>
+									<% end { H }
+									if Order.GetOrderLineField(i,"ItemFee") <> "0.00" and ShowItemFee = "T" then begin {start 28} %>
+										<li>
+											Convenience Fee: <% write(CurrencySymbol + Order.GetOrderLineField(i, "ItemFee")) %> 
+										</li>
+									<% end {end 28}
+									if Order.GetDiscountCount(OrderLineID) > 0 and ShowItemDiscounts = "T" then begin {start 29} %>
+										<% for k = 0 to Order.GetDiscountCount(OrderLineID) - 1 do begin {start 30} %>
+											<li>
+												Applied discount <% write(Order.GetOrderLineDiscountField(OrderLineID,k,"Description")) %>: <% write(CurrencySymbol + Order.GetOrderLineDiscountField(OrderLineID,k,"Amount")) %>
+											</li>
+										<% end {end 30}
+									end {end 29} %>
+								</ul>
+							</td>
+                            <td width="15%" align="center">
+								<% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 31}
+									if Order.GetOrderLineField(i,"Total") < 0 then write("-")
+									write(CurrencySymbol)
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 32}
+										write(FormatCurrency(abs(Order.GetOrderLineField(i,"AmountWithTax") + IssuedBenefits)))
+									end else begin {else 32}
+										write(FormatCurrency(abs(Order.GetOrderLineField(i,"Amount") + IssuedBenefits)))
+									end {end 32}
+								end else begin {else 31} %>
+									&nbsp;
+								<% end {end 31} %>
+                            </td>
+                            <td width="10%" align="center">
+                                <% write(Order.OrderLines(i).GetField("Quantity")) %>
+                            </td>
+                            <td width="20%" align="right">
+                                <% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 33}
+									if Order.GetOrderLineField(i,"Total") < 0 then write("-")
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 34}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"TotalWithTax") + IssuedBenefits)))
+									end else begin {else 34}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"Total") + IssuedBenefits)))
+									end {end 34}
+								end else begin {else 33} %>
+									&nbsp;
+								<% end {end 33} %>
+                            </td>
+                        </tr>
+                    <% end {end 23}
+				{ End: Write Passes }
+                { Begin: Write Partial Package Upgrades }
+                    if (Order.OrderLines(i).GetField("DetailType") = 19) then begin {start 23} 
+						UpgradedAmount = UpgradedAmount + Order.GetOrderLineField(i,"Total") { Workaround 273839: This variable is tracking the amount of upgrade in the order, remove when issue is resolved }
+						%>
+						<tr style="<% if Order.Orderlines(i).GetField("Quantity") < 1 then write(ReturnFont)%>">
+                            <td width="55%" align="left">
+                                <% write(Order.OrderLines(i).GetField("Description")) %> (Upgraded)
+                                <ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:.5em; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(EmphasisFont2) %>">
+									<% if Order.OrderLineIsEvent(i) then begin {start 24} %>
+										<li>
+											<% write(Order.OrderLines(i).Event.GetField("EventName")) %>
+										</li>
+										<li>
+											<% write(DateTimeToStr(Order.OrderLines(i).Event.GetField("StartDateTime"))) %>
+										</li>
+										<% { Begin: Roster Info }
+											for j = 0 to Order.OrderLines(i).Event.Rosters.Count - 1 do begin {start 25}
+												if Order.OrderLines(i).GetField("UniqueID") = Order.OrderLines(i).Event.Rosters(j).GetField("OrderLineID") then begin {start 26} %>
+													<li>Attendee: <% write(Order.OrderLines(i).Event.Rosters(j).Contact.FirstName + " " + Order.OrderLines(i).Event.Rosters(j).Contact.LastName) %></li>
+												<% HasGuests = "T"
+												end {end 26}
+											end {end 25}
+										{ End: Roster Info }
+									end {end 24}
+									for j=0 to Order.Orderlines(i).Guests.Count - 1 do begin {start 27} %>
+										<li>Guest Name: <% write(Order.OrderLines(i).Guests(j).GetField("Name")) %></li>
+									<% HasGuests = "T"
+									end {end 27}
+									if Order.GetOrderLineField(i,"ItemFee") <> "0.00" and ShowItemFee = "T" then begin {start 28} %>
+										<li>
+											Convenience Fee: <% write(CurrencySymbol + Order.GetOrderLineField(i, "ItemFee")) %> 
+										</li>
+									<% end {end 28}
+									if Order.GetDiscountCount(OrderLineID) > 0 and ShowItemDiscounts = "T" then begin {start 29} %>
+										<% for k = 0 to Order.GetDiscountCount(OrderLineID) - 1 do begin {start 30} %>
+											<li>
+												Applied discount <% write(Order.GetOrderLineDiscountField(OrderLineID,k,"Description")) %>: <% write(CurrencySymbol + Order.GetOrderLineDiscountField(OrderLineID,k,"Amount")) %>
+											</li>
+										<% end {end 30}
+									end {end 29} %>
+								</ul>
+							</td>
+                            <td width="15%" align="center">
+								<% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 31}
+									write(CurrencySymbol)
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 32}
+										write(Order.GetOrderLineField(i,"AmountWithTax"))
+									end else begin {else 32}
+										write(Order.GetOrderLineField(i,"Amount")) 
+									end {end 32}
+								end else begin {else 31} %>
+									&nbsp;
+								<% end {end 31} %>
+                            </td>
+                            <td width="10%" align="center">
+                                <% write(Order.OrderLines(i).GetField("Quantity")) %>
+                            </td>
+                            <td width="20%" align="right">
+                                <% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 33}
+									if Order.GetOrderLineField(i,"Total") < 0 then write("-")
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 34}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"TotalWithTax"))))
+									end else begin {else 34}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"Total"))))
+									end {end 34}
+								end else begin {else 33} %>
+									&nbsp;
+								<% end {end 33} %>
+                            </td>
+                        </tr>
+                    <% end {end 23}
+                { End: Write Partial Package Upgrades }
+                { Begin: Write Packages }
+                    if ((Order.OrderLineIsPackage(i) or Order.OrderLines(i).GetField("DetailType") = 17) and Order.OrderLines(i).GetField("GroupID") = 0) then begin {start 35} 
+                        	if (Order.OrderLines(i).OrderLineDetailsCount > 0) then begin {start 71}
+							HasIssuedTickets = "T"
+							end {end 71} %>
+						<tr style="<% if Order.Orderlines(i).GetField("Quantity") < 1 then write(ReturnFont) else write(BodyFont) %>">
+                            <td width="55%" align="left">
+                                <% write(Order.OrderLines(i).GetField("Description")) %><br>
+                                <div style="font-weight:bold;">
+                                  <% if Order.GetOrderLineField(i,"Quantity") <> 1 {start 36}
+                                        then write("Each Package Contains:")
+                                        else write("Package Contains:") {else/end 36} %>
+                                </div>
+								<ul style="list-style-type:none; padding-top:0; padding-left:0; padding-bottom:.5em; margin-top:0; margin-left:0; margin-bottom:0">
+									<% j = i 
+									while (j <= Order.OrderLineCount - 1) do begin {start 37}
+										if Order.GetOrderLineField(j,"GroupID") = Order.GetOrderLineField(i,"UniqueID") then begin {start 38} %>
+											<li>
+												<% q = Order.GetOrderLineField(j,"Quantity") / Order.GetOrderLineField(i,"Quantity")
+												write(q) %> <% write(Order.GetOrderLineField(j, "Description")) %>
+											</li>
+											<% if Order.OrderLineIsEvent(j) then begin {start 39} %>
+												<ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:0; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(EmphasisFont2) %>">
+													<li>
+														<% write(Order.OrderLines(j).Event.GetField("EventName")) %>
+													</li>
+													<li>    
+														<% write(DateTimeToStr(Order.OrderLines(j).Event.GetField("StartDateTime"))) %>
+													</li>
+													<% { Begin: Roster Info }
+														for k = 0 to Order.OrderLines(j).Event.Rosters.Count - 1 do begin {start 40}
+															if Order.OrderLines(j).GetField("UniqueID") = Order.OrderLines(j).Event.Rosters(k).GetField("OrderLineID") then begin {start 41} %>
+																<li>Attendee: <% write(Order.OrderLines(j).Event.Rosters(k).Contact.FirstName + " " + Order.OrderLines(j).Event.Rosters(k).Contact.LastName) %></li>
+															<% HasGuests = "T"
+															end {end 41}
+														end {end 40}
+													{ End: Roster Info } %>
+												</ul>
+											<% end {end 39}
+											if Order.Orderlines(j).Guests.Count > 0 then begin {start 42} %>
+												<ul style="list-styleposition:inside; padding-top:0; padding-left:1.5em; padding-bottom:0; margin-top:0; margin-left:1.5em; margin-bottom:0; <% write(EmphasisFont2) %>">
+												<% for k=0 to Order.Orderlines(j).Guests.Count - 1 do begin {start 43} %>
+													<li>
+														Guest Name: <% write(Order.OrderLines(j).Guests(k).GetField("Name")) %>
+													</li>
+												<% HasGuests = "T"
+												end {end 43} %>
+												</ul>
+											<% end {end 42}
+										end {end 38}
+										j = j + 1
+									end {end 37}
+									if Order.GetOrderLineField(i,"ItemFee") <> "0.00" and ShowItemFee = "T"  then begin {start 44} %>
+										<li style="<% write(EmphasisFont2) %>">
+											Convenience Fee: <% write(CurrencySymbol + Order.GetOrderLineField(i, "ItemFee")) %> 
+										</li>
+									<% end {end 44}
+									if Order.GetDiscountCount(OrderLineID) > 0 and ShowItemDiscounts = "T" then begin {start 45}
+										for k = 0 to Order.GetDiscountCount(OrderLineID) - 1 do begin {start 46} %>
+											<li>
+												Applied discount <% write(Order.GetOrderLineDiscountField(OrderLineID,k,"Description")) %>: <% write(CurrencySymbol + Order.GetOrderLineDiscountField(OrderLineID,k,"Amount")) %>
+											</li>
+										<% end {end 46}
+									end {end 45} %>
+								</ul>
+                            </td>
+                            <td width="15%" align="center">
+								<% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 47}
+									write(CurrencySymbol)
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 48}
+										write(Order.GetOrderLineField(i,"AmountWithTax"))
+									end else begin {else 48}
+										write(Order.GetOrderLineField(i,"Amount"))
+									end {end 48}
+								end else begin {else 47} %>
+									&nbsp;
+								<% end {end 47} %>
+                            </td>
+                            <td width="10%" align="center">
+                                <% write(Order.OrderLines(i).GetField("Quantity")) %>
+                            </td>
+                            <td width="20%" align="right">
+                                <% if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 49}
+									if Order.GetOrderLineField(i,"Total") < 0 then write("-")
+									if Order.GetOrderLineField(i, "IsTaxInclusive") then begin {start 50}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"TotalWithTax"))))
+									end else begin {else 50}
+											write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"Total"))))
+									end {end 50}
+								end else begin {else 49} %>
+									&nbsp;
+								<% end {end 49} %>
+                            </td>
+                        </tr>
+					<% end {end 35}
+				{ End: Write Packages }
+				   
+				{ Begin: Write Donations }                                                           
+					if Order.OrderLineIsDonation(i) and ShowDonationInOrderLines = "T" then begin {start 51} %>  
+						<tr>
+							<td width="55%" align="left">
+                                <% write(Order.GetOrderLineField(i, "Description")) %>
+                            </td>
+                            <td width="15%" align="center">
+                                <% each = Order.OrderLines(i).GetField("Total") / Order.OrderLines(i).GetField("Quantity")
+								write(CurrencySymbol + FormatCurrency(each)) %>
+                            </td>
+                            <td width="10%" align="center">                                 
+                                <% write(Order.OrderLines(i).GetField("Quantity")) %>                                              
+                            </td>
+                            <td width="20%" align="right">
+                                <% write(CurrencySymbol + Order.OrderLines(i).GetField("Total")) %>                     
+                            </td>
+                        </tr>
+                      <% TotalDonation = TotalDonation + Order.OrderLines(i).GetField("Total")
+                    end {end 51}
+                { End: Write Donations }
+				end {end 17}
+            { End: List Order Lines }
+				
+			{ Begin: Order Fee in Order Lines }
+				if NOT(Order.GetOrderField("PaidWithLoyalty")) then begin {start 52}
+					if Order.OrderFee > 0.0 and ShowOrderFeeInOrderLines = "T" then begin {start 53} %>
+						<tr>
+							<td width="55%" align="left" style="font-weight:bold">
+								Order Fee:
+							</td>
+							<td colspan="3" width="45%" align="right">
+								<% write(CurrencySymbol + FormatCurrency(Order.OrderFee)) %>
+							</td>
+						</tr>
+					<% end {end 53}
+				end {end 52}
+			{ End: Order Fee in Order Lines } %>
+				
+			<tr>
+				<td colspan="1"></td>
+				<td colspan="3">
+					<hr size="1" noshade color="<% write(DividerColor) %>">
+				</td>
+			</tr>
+			<% { Begin: Totals Section }
+				if Order.GetOrderField("PaidWithLoyalty") then begin {start 54}
+					{ Begin: Paid With Loyalty Totals } %>
+						<tr>
+							<td align="right" colspan="2">
+								Loyalty Points Redeemed:
+							</td>
+							<td align="right" colspan="2">
+								<% write(Order.GetOrderField("RedeemedLoyaltyPoints")) %>
+							</td>
+						</tr>
+						<tr>
+							<td align="right" colspan="2">
+								Value Saved:
+							</td>
+							<td align="right" colspan="2">
+								<% write(CurrencySymbol + Order.GetOrderField("Total")) %>
+							</td>
+						</tr>	
+					<% { End: Paid With Loyalty Totals }
+				end else begin {else 54}
+					{ Begin: Paid Normally Totals}
+					
+						{ Begin Subtotal } %>
+							<tr>
+								<td align="right" colspan="2">
+									Subtotal: 
+								</td>
+								<td align="right" colspan="2">
+									<% 
+										{ Workaround 273839: Subtotal removing the upgraded amount. Remove this line when issue is resolved. }
+											write(CurrencySymbol + FormatCurrency((Order.GetOrderField("SubTotal")+UpgradedAmount))) 
+										{ The line below (in brackets) is the correct code to get the order total when 273839 is resolved, remove the brackets above and below to restore. }
+										{ REMOVE THIS LINE TO RESTORE ORIGINAL TEMPLATE 
+											write(CurrencySymbol + FormatCurrency(Order.GetOrderField("SubTotal")))
+										REMOVE THIS LINE TO RESTORE ORIGINAL TEMPLATE }	
+									%>
+								</td>
+							</tr>
+						<%{ End: Subtotal }
+						
+						{ Begin: Order fee in totals }
+							if Order.OrderFee > 0.0 and ShowOrderFeeInTotals = "T" then begin {start 55} %>	
+								<tr>
+									<td align="right" colspan="2">
+										Order Fee:
+									</td>
+									<td align="right" colspan="2">
+										<% write(CurrencySymbol + FormatCurrency(Order.OrderFee)) %>
+									</td>
+								</tr>
+							<% end {end 55}
+						{ End: Order Fee in totals }
+						
+						{ Begin: Total Convenience Fees }
+							if Order.FeeTotal > 0.0 and ShowConvenienceFeeTotal = "T" then begin {start 56} %>
+								<tr>
+									<td align="right" colspan="2">
+										Processing Fee Total (Tax Included): 
+									</td>
+									<td align="right" colspan="2">
+										<% write(CurrencySymbol + FormatCurrency(Order.FeeTotal)) %>
+									</td>
+								</tr>
+							<% end {end 56}
+						{ End: Total Convenience Fees }
+						
+						{ Begin: Tax } %>
+							<tr>
+								<td align="right" colspan="2">
+									Total Tax:
+								</td>
+								<td align="right" colspan="2">
+									<% write(CurrencySymbol + Order.GetField("Tax")) %>
+								</td>
+							</tr>
+						<% { End: Tax }
+						
+						{ Begin Shipping Fee } %>
+							<tr>
+								<td align="right" colspan="2">
+									Shipping (<% write(Order.GetOrderField("DeliveryMethodName")) %>):
+								</td>
+								<td align="right" colspan="2">
+									<% if ShowShippingWithoutTax = "T" then begin write(CurrencySymbol + Order.GetField("ShippingWithoutTax")) {start 57}
+									end else begin write(CurrencySymbol + Order.GetField("Shipping")) end {end 57} %>
+								</td>
+							</tr>
+						<% { End: Shipping Fee } %>
+						<tr>
+							<td colspan="4">
+								<hr size="1" noshade color="<% write(DividerColor) %>">
+							</td>
+						</tr>
+						
+						<% { Begin: Grand Total } %>
+							<tr>
+								<td align="right" colspan="2" width="85%" style="font-weight:bold">
+									Order Total:
+                                </td>
+								<td align="right" style="font-weight:bold" colspan="2">
+									<% 
+										{ Workaround 273839: Subtotal removing the upgraded amount. Remove this line when issue is resolved. }
+											write(CurrencySymbol + FormatCurrency((Order.GetOrderField("Total")+UpgradedAmount))) 
+										{ The line below (in brackets) is the correct code to get the order total when 273839 is resolved, remove the brackets above and below to restore. }
+										{ REMOVE THIS LINE TO RESTORE ORIGINAL TEMPLATE 
+											write(CurrencySymbol + FormatCurrency(Order.GetOrderField("Total")))
+										REMOVE THIS LINE TO RESTORE ORIGINAL TEMPLATE }	
+									%>
+                                </td>
+							</tr>
+						<% { End: Grand Total }
+						
+						{ Begin: Payment Information } 
+							for i = 0 to Order.OrderLineCount - 1 do begin {start 58}
+								if (Order.OrderLineIsPayment(i)) then begin {start 59}
+									if Order.GetOrderLineField(i,"OrderPayment.PaymentFOP") <> ChargeFOPID and Order.GetOrderLineField(i,"OrderPayment.PaymentFOP") <> 0 then begin {start 60} %>
+										<tr>
+											<td align="right" colspan="2">
+												Payment (<% write(Order.GetOrderLineField(i,"OrderPayment.PaymentFOPLongName") + "..." + Order.GetOrderLineField(i,"OrderPayment.SearchEndorsementValue")) %>):
+											</td>
+											<td align="right" colspan="2">
+												<% if Order.GetOrderLineField(i,"OrderPayment.PaymentAmount") < 0.00 then write("-") {start/end 61}
+												write(CurrencySymbol + FormatCurrency(abs(Order.GetOrderLineField(i,"OrderPayment.PaymentAmount")))) %>
+											</td>
+										</tr>
+									<% end {end 60}
+								end {end 59}
+							end {end 58}
+						{ End: Payment Information}	
+						
+						{ Begin: Order Balance } %>
+							<tr>
+								<td align="right" colspan="2">
+									Balance:	
+								</td>
+								<td align="right" colspan="2">
+									<% write(CurrencySymbol + Order.GetOrderField("Balance")) %>
+								</td>
+							</tr>
+						<%	{ End: Order Balance Information }				
+					{ End: Paid Normally Totals}
+				end {end 54} %>
+				
+				<tr>
+					<td colspan="4"><br></td>        
+				</tr>
+				</table>
+				</tr>
+			<% { End: Totals Section } %>
+		</table>		
+		
+		<% {Begin Apple Wallet Link}
+			if ShowAppleWalletLink = "T" and HasIssuedTickets = "T" then begin {start 72}
+				AppleWalletURL = WebStoreURL + "applewallet/?x=" + Order.GetField("OrderHash")
+				if OverrideDefaultTheme = "T" then AppleWalletURL = AppleWalletURL + "&" + CategoryGroup
+				AppleWalletImage = WebStoreURL + "images/AppleWallet/appleWallet-" + AppleWalletButtonLanguage + ".png" %>
+				<p style="text-align: center;"><a href="<% write(AppleWalletURL) %>"><img src="<% write(AppleWalletImage)%>" alt="Download Apple Wallet tickets"></a>
+			<% end {end 72}
+		{ End Apple Wallet Link }
+		
+		{ Begin: Discount Bragging }
+			if ShowDiscountBragging = "T" and totaldiscount > 0.0 then begin {start 62}
+				if NumDiscounts > 1 then begin {start 63} %>
+					<p style="<% write(BodyFont) %>"> Using your discounts, you saved <% write(CurrencySymbol + FormatCurrency(totaldiscount)) %>!</p>
+				<% end else begin if NumDiscounts = 1 then begin {else 63, start 64} %>
+						<p style="<% write(BodyFont) %>"> Using your <% write(DiscountName) %> discount, you saved <% write(CurrencySymbol + FormatCurrency(totaldiscount)) %>!</p>
+					<% end else begin {else 64} %>
+						<p style="<% write(BodyFont) %>"> You saved <% write(CurrencySymbol + FormatCurrency(totaldiscount)) %> on your order!</p>
+					<% end {end 64}
+				end {end 63}
+			end {end 62}
+		{ End: Discount Bragging }
+		
+	    { Begin: Donation Appreciation }  
+			if ShowDonationAppreciation = "T" and totaldonation > 0.0 then begin {start 65} %>
+				<p style="<% write(BodyFont) %>"> 
+					Thank you for your donation of <% write(CurrencySymbol + FormatCurrency(TotalDonation)) %>!
+				</p>
+			<% end {end 65}
+		{ End: Donation Appreciation }
+        
+		{ Begin: Newsletter Opt In Confirmation }
+			if ShowNewsletterOptInMessage = "T" and Order.GetOEUserField(0,"Response") = "Yes" then begin {start 66} %>
+				<p style="<% write(BodyFont) %>">
+					<% write (NewsletterConfirmation) %>
+				</p>
+			<% end {end 66}
+		{ End: Newsletter Opt In Confirmation } %>
+		
+		<table style="<% write(BodyFont) %>" width="100%">
+		
+            
+		<%{ Begin: OrderDetails }
+		if ShowTicketVID = "T" and HasIssuedTickets = "T" then begin {Start A} %>
+			<table style="<% write(BodyFont) %>" width="100%" border="0" cellspacing="2" cellpadding="2">
+				<% columns = 2
+				if HasGuests = "T" then columns = 3
+				colwidth = 100 / columns %>
+				<tr height="36" align="center" style="<% write(HeaderFont) %>">
+					<td width="<% write(colwidth) %>%">
+						Description
+					</td>
+					<% if HasGuests = "T" then begin {E} %>
+						<td width="<% write(colwidth) %>%">
+							Guest
+						</td>				
+					<% end { E }%>
+					<td width="<% write(colwidth) %>%">
+						Barcode
+					</td>
+				</tr>	
+				<% for i = 0 to Order.OrderLineCount - 1 do begin {start B}
+					if Order.OrderLines(i).IsTicket and Order.OrderLines(i).IsPackageDetail = "False" then begin {start C}
+						for j = 0 to Order.OrderLines(i).OrderLineDetailsCount - 1 do begin {start D} %>
+							<tr align="center" style="<% write(BodyFont) %>">
+								<td>
+									<% write(Order.OrderLines(i).GetField("Description")) %>
+								</td>
+								<% if HasGuests = "T" then begin { F } %>
+									<td>
+										<% WroteGuest = "F"
+										if Order.OrderLineIsEvent(i) then begin { K }
+											for h = 0 to Order.OrderLines(i).Event.Rosters.Count - 1 do begin { I }
+												if Order.OrderLines(i).OrderLineDetails(j).Ticket.ContactID = Order.OrderLines(i).Event.Rosters(h).GetField("ContactID") then begin { J }
+													write(Order.OrderLines(i).Event.Rosters(h).Contact.FirstName + " " + Order.OrderLines(i).Event.Rosters(h).Contact.LastName)
+													WroteGuest = "T"
+												end { J }
+											end { I } 
+										end { K }
+										if WroteGuest = "F" then begin { L }
+											if Order.Orderlines(i).Guests.Count > 0 then begin { G }
+												for k = 0 to Order.Orderlines(i).Guests.Count - 1 do begin { H }
+													if Order.OrderLines(i).Guests(k).GetField("ContactID") = Order.OrderLines(i).OrderLineDetails(j).Ticket.ContactID then write(Order.OrderLines(i).Guests(k).GetField("Name"))
+													WroteGuest = "T"
+												end { H }
+											end { G }
+										end { L }
+										if WroteGuest = "F" then write ("&nbsp;") %>
+									</td>
+								<% end { F } %>
+								<td>
+									<img src="<% write(WebStoreURL) %>/api/images/GetBarcode?visualId=<% write( Order.OrderLines(i).OrderLineDetails(j).Ticket.VisualID ) %>" border="0" alt="<% write( Order.OrderLines(i).OrderLineDetails(j).Ticket.VisualID ) %>"/><br>
+									<% write( Order.OrderLines(i).OrderLineDetails(j).Ticket.VisualID ) %><br>
+								</td>
+							</tr>
+						<% end {end D}
+					end {end C}
+					if Order.OrderLines(i).IsPass then begin { M } %>
+						<tr align="center" style="<% write(BodyFont) %>">
+							<td>
+								<% write(Order.OrderLines(i).GetField("Description")) %>
+							</td>
+							<% if HasGuests = "T" then begin { O } %>
+								<td>
+									<% write(Order.OrderLines(i).Pass.First + " " + Order.OrderLines(i).Pass.Last) %>
+								</td>
+							<% end { O } %>
+							<td>
+								<img src="<% write(WebStoreURL) %>/api/images/GetBarcode?visualId=<% write(Order.OrderLines(i).Pass.VisualID) %>" border="0" alt="<% write(Order.OrderLines(i).Pass.VisualID) %>"/><br>
+								<% write(Order.OrderLines(i).Pass.VisualID) %><br>
+							</td>
+						</tr>
+						<% if Order.OrderLines(i).Pass.JointMemberCount > 1 then begin { P }
+							for k = 1 to Order.OrderLines(i).Pass.JointMemberCount - 1 do begin { Q }
+								if Order.OrderLines(i).Pass.VisualID <> Order.OrderLines(i).Pass.JointMembers(k).VisualID then begin { R } %>
+									<tr align="center" style="<% write(BodyFont) %>">
+										<td>
+											<% write(Order.OrderLines(i).GetField("Description")) %>
+										</td>
+										<% if HasGuests = "T" then begin { O } %>
+											<td>
+												<% write(Order.OrderLines(i).Pass.JointMembers(k).Contact.FormattedName) %>
+											</td>
+										<% end { O } %>
+										<td>
+											<img src="<% write(WebStoreURL) %>/api/images/GetBarcode?visualId=<% write( Order.OrderLines(i).Pass.JointMembers(k).VisualID ) %>" border="0" alt="<% write( Order.OrderLines(i).Pass.JointMembers(k).VisualID ) %>"/><br>
+											<% write( Order.OrderLines(i).Pass.JointMembers(k).VisualID ) %><br>
+										</td>
+									</tr>
+								<% end { R }
+							end { Q }
+						 end { P }
+					end { M }
+				end {end B} %>
+			</table>
+		<% end {end A}
+			
+		{ End: OrderDetails }
+			
+{ Begin: TO_EDIT - Footer Area } %>
+				<tr height="36">
+					</p>
+<br>
+<br>
+<B>PARKING:</B></P><br>
+<p>The Daily parking fee per vehicle is $20. The Annual parking pass is available for $40.</p>
+ 
+<p>Buses/motor coaches traveling with a group with tickets that are paid in full in advance
+must present this final booking confirmation/letter showing the $0.00 balance and the group
+name to have the parking permit fee waived. PLEASE LET US KNOW IF YOU WILL BE ARRIVING ON A
+BUS, MOTOR COACH, OR 15-PASSENGER VEHICLE. If the paid-in-full booking confirmation/letter
+is not presented, the $20 daily parking fee WILL BE CHARGED.</p>
+
+<p>Public schools or government buses with a permanent logo or name printed on the vehicle will
+have parking permit fee waived. Smaller public school and government vehicles with a permanent
+logo or name printed on the vehicle will have the parking permit fee waived as well.</p>
+
+<p>Company or church vans that are less than 15-passenger will be required to pay for the $20.00
+daily parking fee or have an annual parking pass (window sticker).</p>
+
+<p>Other personal or private vehicles traveling with the group are required to pay the daily parking
+fee or have an annual parking pass (window sticker). This includes chaperone vehicles attending field trips.</p>
+
+<p>NO REFUNDS WILL BE ISSUED FOR PARKING.
+<a href="https://www.stonemountainpark.com/tickets-specials/parking/">Purchase parking here.</a></p>
+<td>
+						<p>
+							<b>
+								We look forward to your visit to Stone Mountain Park.
+							</b>
+						</p>
+					</td>
+				</tr>
+				
+				<tr height="36">
+					<td>
+						<p>
+							<img src="<% write(WebStoreURL) %>/api/images/GetBarcode?visualId=<% write( Order.GetField("OrderID" )) %>" border="0" alt="<% write(Order.GetField("OrderID" ) ) %>"/>
+							
+						</p>
+					</td>
+				</tr>
+			<% { End: TO_EDIT - Footer Area }
+			
+			
+			{ Begin: Merchant Support Link }
+				if MerchantSupportURL <> "" then begin {start 69} %>
+					<tr height="36">
+						<td style="<% write(EmphasisFont) %>;text-align:center;">
+							<a href="<% write(MerchantSupportURL) %>">
+								Customer Support
+							</a>
+						</td>
+					</tr>
+				<% end {end 69}
+			{ End: Merchant Support Link } %>
+        </table>
+	   </td>
+      </tr>
+		<% {Begin: ORDER LINE DIAGNOSTIC}
+		if OrderLineDiagnostic = "T" then begin %>
+			<tr>
+				<td>
+					<p>Order Line Dump:</p>
+					<ol>
+					<% for i = 0 to Order.OrderLineCount - 1 do begin %>
+						<li>ID: <% write(Order.GetOrderLineField(i,"UniqueID")) %>
+							<ul>
+								<li>Description:<% write(Order.OrderLines(i).GetField("Description")) %></li>
+								<li>PLU: <% write(Order.OrderLines(i).GetField("PLU")) %></li>
+								<li>Quantity: <% write(Order.OrderLines(i).GetField("Quantity")) %></li>
+								<li>Price: <% write(Order.OrderLines(i).GetField("Total")) %></li>
+								<li>DetailType: <% write(Order.OrderLines(i).GetField("DetailType")) %>
+								<li>Is Ticket: <% write(Order.OrderLineIsTicketOrItem(i)) %></li>
+								<li>Is Package: <% write(Order.OrderLineIsPackage(i)) %></li>
+								<li>Is PackageHeader: <% write(Order.OrderLines(i).IsPackageHeader) %></li>
+								<li>Is PackageDetail: <% write(Order.OrderLines(i).IsPackageDetail) %></li>
+								<li>Is Payment: <% write(Order.OrderLineIsPayment(i)) %></li>
+								<li>Is Pass: <% write(Order.OrderLineIsPass(i)) %></li>
+								<% if Order.OrderLines(i).OrderLineDetailsCount <> 0 and Order.OrderLineIsPayment(i) = "False" then begin %>
+									<li>Ticket Data:</li>
+										<ol>
+											<% for j = 0 to Order.OrderLines(i).OrderLineDetailsCount - 1 do begin %>
+												<li>J: <% write(j) %>
+													<ul>
+														<li>OL Description: <% write(Order.OrderLines(i).GetField("Description")) %></li>
+														<li>VID: <% write( Order.OrderLines(i).OrderLineDetails(j).Ticket.VisualID ) %></li>
+														<li>Ticket Status: <% write( Order.OrderLines(i).OrderLineDetails(j).Ticket.Status ) %></li>
+														<li>Guest: <% if Order.Orderlines(i).Guests.Count > 0 then begin
+															for k = 0 to Order.Orderlines(i).Guests.Count - 1 do begin
+																if Order.OrderLines(i).Guests(k).GetField("ContactID") = Order.OrderLines(i).OrderLineDetails(j).Ticket.ContactID then write(Order.OrderLines(i).Guests(k).GetField("Name"))
+															end {end guest debug for loop}
+														end else write("&nbsp;") %>
+													</ul>
+												</li>
+											<% end {end ticket detail debug loop} %>
+										</ol>
+									</li>
+								<% end {end ticket data debug if} %>
+							</li>
+						</li>
+					<% end {end orderline debug loop %>
+					</ol>
+				</td>
+			</tr>
+		<% end {end debug section}
+		{END ORDER LINE DIAGNOSTIC } %>
+    </table>
+</body>
